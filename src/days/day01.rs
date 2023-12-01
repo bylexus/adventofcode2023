@@ -20,7 +20,7 @@ impl Day for Day01 {
         String::from("01")
     }
     fn title(&self) -> String {
-        String::from("Hello, World!")
+        String::from("Day 1: Trebuchet?!")
     }
 
     fn prepare(&mut self) {
@@ -45,18 +45,16 @@ impl Day for Day01 {
     fn solve2(&self) -> String {
         let mut sum: u64 = 0;
         for line in self.input.iter() {
-            let re = regex::Regex::new(
-                r"(1|2|3|4|5|6|7|8|9|one|two|three|four|five|six|seven|eight|nine)",
-            )
-            .unwrap();
-            let lower = line.to_lowercase();
-            let all: Vec<&str> = re.find_iter(lower.as_str()).map(|m| m.as_str()).collect();
+            let all = findNrs(line);
             if all.len() > 0 {
-                let firstStr = all[0];
-                let lastStr = all[all.len() - 1];
+                let firstStr = all[0].as_str();
+                let lastStr = all[all.len() - 1].as_str();
                 let first = strToNr(firstStr);
                 let last = strToNr(lastStr);
-                // println!("{0} {1}", first, last);
+                // if all.len() == 1 {
+                //     println!("single entry: {0}: {1}", all[0], line);
+                //     println!("{0} {1}", first, last);
+                // }
                 sum += (10 * first) + last;
             }
         }
@@ -64,13 +62,35 @@ impl Day for Day01 {
     }
 }
 
+fn findNrs(line: &str) -> Vec<String> {
+    // attention: we cannot just simply find all regex sub-groups, as there are some
+    // mean entries like "eighthree" or "sevenine"..... So I loop over all substring, removing
+    // one character at at time from the beginning.
+    let re = regex::Regex::new(r"(1|2|3|4|5|6|7|8|9|one|two|three|four|five|six|seven|eight|nine)")
+        .unwrap();
+    let mut res = Vec::new();
+    let lower = line.to_lowercase();
+    for m in 0..(line.len()) {
+        let sub: String = lower.chars().skip(m).collect();
+        let m = re.find(sub.as_str());
+        if m.is_some() {
+            let s = m.unwrap().as_str();
+            res.push(String::from(s));
+        }
+    }
+
+    res
+}
+
 fn strToNr(line: &str) -> u64 {
     match line {
         "one" => 1,
         "1" => 1,
         "two" => 2,
+        "eightwo" => 2,
         "2" => 2,
         "three" => 3,
+        "eighthree" => 3,
         "3" => 3,
         "four" => 4,
         "4" => 4,
@@ -81,6 +101,10 @@ fn strToNr(line: &str) -> u64 {
         "seven" => 7,
         "7" => 7,
         "eight" => 8,
+        "oneight" => 8,
+        "threeight" => 8,
+        "fiveight" => 8,
+        "nineight" => 8,
         "8" => 8,
         "nine" => 9,
         "9" => 9,
