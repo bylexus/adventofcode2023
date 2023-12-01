@@ -1,5 +1,6 @@
 mod days;
-use days::{Day, Day00, Day01, Day02};
+mod types;
+use days::{Day, Day00, Day01, Day02, DayTest};
 use std::env;
 use std::time::{Duration, Instant};
 use std::vec::Vec;
@@ -21,6 +22,7 @@ fn main() {
     // Create the problems instances to solve:
     for a in env::args().skip(1) {
         probs.push(match a.as_str() {
+            "test" => Box::new(DayTest::new()),
             "0" => Box::new(Day00::new()),
             "1" => Box::new(Day01::new()),
             "2" => Box::new(Day02::new()),
