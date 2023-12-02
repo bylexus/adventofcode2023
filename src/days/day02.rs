@@ -55,6 +55,7 @@ impl Day02 {
                         let (_, [a, b]) = m.extract();
                         (a.parse::<u32>().unwrap(), b)
                     })
+                    // emit a tuple (nr, color) into the game.groups vec:
                     .for_each(|(nr, color)| {
                         game.groups.push((nr, color.to_string()));
                     });
