@@ -1,6 +1,6 @@
-use std::{collections::HashMap, fmt::Display};
+use std::{collections::{HashMap, hash_map::Iter}, fmt::Display};
 
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct Coord2d {
     pub x: i64,
     pub y: i64,
@@ -50,6 +50,7 @@ impl Coord2d {
 }
 
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct Coord2dMap<T> {
     map: HashMap<Coord2d, T>,
     min_x: i64,
@@ -84,6 +85,10 @@ impl<T> Coord2dMap<T> {
             self.min_y = key.y
         }
         self.map.insert(key, value)
+    }
+
+    pub fn iter(&self) -> Iter<Coord2d, T> {
+        self.map.iter()
     }
 
     pub fn get(&self, key: &Coord2d) -> Option<&T> {
