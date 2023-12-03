@@ -1,6 +1,3 @@
-use itertools::Itertools;
-use std::{collections::HashMap, fmt::Display};
-
 use adventofcode2023::read_lines;
 
 use crate::types::{Coord2d, Coord2dMap};
@@ -8,32 +5,18 @@ use crate::types::{Coord2d, Coord2dMap};
 use super::Day;
 
 #[derive(Debug)]
-enum EntryType {
-    Symbol(char),
-    Number(String),
-    Other(char),
-}
-impl Display for EntryType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Symbol(c) => write!(f, "{}", c),
-            Self::Other(_) => write!(f, "_"),
-            Self::Number(str) => write!(f, "{}", str),
-        }
-    }
-}
-
-#[derive(Debug)]
 pub struct Day03 {
     input: Vec<String>,
-    data: Coord2dMap<EntryType>,
+    numbers: Coord2dMap<String>,
+    symbols: Coord2dMap<char>,
 }
 
 impl Day03 {
     pub fn new() -> Day03 {
         Day03 {
             input: Vec::new(),
-            data: Coord2dMap::new(),
+            numbers: Coord2dMap::new(),
+            symbols: Coord2dMap::new(),
         }
     }
 
@@ -44,6 +27,11 @@ impl Day03 {
         }
     }
 
+    // This is a little parser:
+    /// Each line is parsed for numbers and symbols.
+    /// If a number of a symbol is found, it is stored in its
+    /// corresponding coordinate map: I store numbers and symbols in separate maps,
+    /// for faster lookups later.
     fn parse_line(&mut self, line: &String, y: i64) {
         let mut nr_str = String::from("");
         let mut str_start: i64 = 0;
@@ -60,82 +48,65 @@ impl Day03 {
                 }
                 nr_str.push(chr);
             } else {
-                if chr == '.' {
-                    self.data.insert(Coord2d { x, y }, EntryType::Other(chr));
-                } else {
-                    self.data.insert(Coord2d { x, y }, EntryType::Symbol(chr));
+                let coord = Coord2d { x, y };
+                if chr != '.' {
+                    self.symbols.insert(coord, chr);
                 }
                 // finished number, store it:
                 if nr_str.len() > 0 {
-                    self.data.insert(
-                        Coord2d { x: str_start, y },
-                        EntryType::Number(String::from(nr_str.as_str())),
-                    );
+                    let coord = Coord2d { x: str_start, y };
+                    self.numbers.insert(coord, String::from(nr_str.as_str()));
                     nr_str.clear();
                 }
             }
         }
         // finish a number at the end of the line:
         if nr_str.len() > 0 {
-            self.data.insert(
-                Coord2d { x: str_start, y },
-                EntryType::Number(String::from(nr_str.as_str())),
-            );
+            let coord = Coord2d { x: str_start, y };
+            self.numbers.insert(coord, String::from(nr_str.as_str()));
             nr_str.clear();
         }
     }
 
-    fn is_part_number(&self, start_coord: &Coord2d, number: EntryType) -> bool {
-        match number {
-            EntryType::Number(nr_str) => {
-                // check all surrounding coordinates for a symbol:
-                for y in (start_coord.y - 1)..=(start_coord.y + 1) {
-                    for x in (start_coord.x - 1)..=(start_coord.x + nr_str.len() as i64) {
-                        let check_entry = self.data.get(&Coord2d { x, y });
-                        if let Some(EntryType::Symbol(_)) = check_entry {
-                            return true;
-                        }
-                    }
+    /// Checks if the given number is a part number: a number is a part number
+    /// if it is adjacent to a symbol.
+    fn is_part_number(&self, nr_str: &str, nr_coord: &Coord2d) -> bool {
+        // check all surrounding coordinates for a symbol:
+        for y in (nr_coord.y - 1)..=(nr_coord.y + 1) {
+            for x in (nr_coord.x - 1)..=(nr_coord.x + nr_str.len() as i64) {
+                let check_entry = self.symbols.get(&Coord2d { x, y });
+                if let Some(_) = check_entry {
+                    return true;
                 }
-
-                false
             }
-            _ => false,
         }
+        false
     }
 
+    /// Returns a list of numbers that are adjacent to the given coordinate.
+    /// we need this to find adjacent numbers for gears. coord here would
+    /// be a gear coordinate.
     fn find_surrounding_numbers(&self, coord: &Coord2d) -> Vec<String> {
         let mut numbers: Vec<String> = Vec::new();
-        for (entry_coords, entry) in self.data.iter() {
-            if let EntryType::Number(n) = entry {
-                if self.is_adjacent_number(coord, entry_coords, entry) {
-                    numbers.push(String::from(n));
-                }
+        for (number_coord, nr_str) in self.numbers.iter() {
+            if self.is_adjacent_number(coord, nr_str, number_coord) {
+                numbers.push(String::from(nr_str));
             }
         }
         numbers
     }
 
-    fn is_adjacent_number(
-        &self,
-        coord: &Coord2d,
-        entry_coords: &Coord2d,
-        number: &EntryType,
-    ) -> bool {
-        match number {
-            EntryType::Number(nr_str) => {
-                for y in (entry_coords.y - 1)..=(entry_coords.y + 1) {
-                    for x in (entry_coords.x - 1)..=(entry_coords.x + nr_str.len() as i64) {
-                        let check_coord = Coord2d { x, y };
-                        if check_coord == *coord {
-                            return true;
-                        }
-                    }
+    /// Checks if the given number/coordinate is adjacent to the given coordinate.
+    fn is_adjacent_number(&self, coord: &Coord2d, nr_str: &str, number_coord: &Coord2d) -> bool {
+        for y in (number_coord.y - 1)..=(number_coord.y + 1) {
+            for x in (number_coord.x - 1)..=(number_coord.x + nr_str.len() as i64) {
+                let check_coord = Coord2d { x, y };
+                if check_coord == *coord {
+                    return true;
                 }
-                false
             }
-            _ => false,
         }
+        false
     }
 }
 
@@ -156,12 +127,10 @@ impl Day for Day03 {
 
     fn solve1(&self) -> String {
         let mut sum = 0;
-        for (coord, entry) in self.data.iter() {
-            if let EntryType::Number(n) = entry {
-                if self.is_part_number(&coord, EntryType::Number(String::from(n))) {
-                    let nr = n.parse::<i64>().unwrap();
-                    sum += nr;
-                }
+        for (number_coord, number_str) in self.numbers.iter() {
+            if self.is_part_number(number_str, number_coord) {
+                let nr = number_str.parse::<i64>().unwrap();
+                sum += nr;
             }
         }
         String::from(format!("{0}", sum))
@@ -170,16 +139,14 @@ impl Day for Day03 {
     fn solve2(&self) -> String {
         let mut sum = 0;
 
-        for (coord, entry) in self.data.iter() {
-            if let EntryType::Symbol(s) = entry {
-                // check for surrounding numbers of gears:
-                if *s == '*' {
-                    let numbers = self.find_surrounding_numbers(&coord);
-                    if numbers.len() == 2 {
-                        let nr1 = numbers[0].parse::<i64>().unwrap();
-                        let nr2 = numbers[1].parse::<i64>().unwrap();
-                        sum += nr1 * nr2;
-                    }
+        for (coord, symbol) in self.symbols.iter() {
+            // check for surrounding numbers of gear symbol:
+            if *symbol == '*' {
+                let numbers = self.find_surrounding_numbers(&coord);
+                if numbers.len() == 2 {
+                    let nr1 = numbers[0].parse::<i64>().unwrap();
+                    let nr2 = numbers[1].parse::<i64>().unwrap();
+                    sum += nr1 * nr2;
                 }
             }
         }
