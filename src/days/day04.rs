@@ -62,16 +62,20 @@ impl Day04 {
         counter += card_nrs.len() as u64;
 
         // process each card:
+        let mut cards_to_process: Vec<u32> = Vec::new();
         for card_nr in card_nrs.iter() {
             let winning_cards = match self.winning_cards_memo.get(card_nr) {
                 Some(v) => *v,
                 None => 0,
             };
             if winning_cards > 0 {
-                // process a list of sub-cards:
-                let sub_cards: Vec<u32> = ((card_nr + 1)..=(*card_nr + winning_cards)).collect();
-                counter += self.count_cards(&sub_cards);
+                // keep a memo of the sub-cards to process:
+                cards_to_process.extend((card_nr + 1)..=(*card_nr + winning_cards));
             }
+        }
+        // process a list of sub-cards:
+        if cards_to_process.len() > 0 {
+            counter += self.count_cards(&cards_to_process);
         }
 
         counter
