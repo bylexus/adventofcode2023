@@ -15,6 +15,7 @@ pub struct Day04 {
     input: Vec<String>,
     cards: Vec<Card>,
     winning_cards_memo: HashMap<u32, u32>,
+    card_counter_memo: HashMap<u32, u64>,
 }
 
 impl Day04 {
@@ -23,6 +24,7 @@ impl Day04 {
             input: Vec::new(),
             cards: Vec::new(),
             winning_cards_memo: HashMap::new(),
+            card_counter_memo: HashMap::new(),
         }
     }
 
@@ -56,28 +58,32 @@ impl Day04 {
         }
     }
 
-    fn count_cards(&self, card_nrs: &Vec<u32>) -> u64 {
+    /// Clever memoization-based algorithm to count all winning cards
+    /// including the newly gained sub-cards. Each card's total count
+    /// is either calculated recursively, or, if already memoized,
+    /// returned from the cache.
+    /// This makes the calculation super-fast.
+    fn count_card(&mut self, card_nr: u32) -> u64 {
         let mut counter: u64 = 0;
-        // 1st, count all given cards:
-        counter += card_nrs.len() as u64;
 
-        // process each card:
-        let mut cards_to_process: Vec<u32> = Vec::new();
-        for card_nr in card_nrs.iter() {
-            let winning_cards = match self.winning_cards_memo.get(card_nr) {
-                Some(v) => *v,
-                None => 0,
-            };
-            if winning_cards > 0 {
-                // keep a memo of the sub-cards to process:
-                cards_to_process.extend((card_nr + 1)..=(*card_nr + winning_cards));
+        if let Some(counter_memo) = self.card_counter_memo.get(&card_nr) {
+            return *counter_memo;
+        }
+
+        // 1st, count the one card:
+        counter += 1;
+
+        // process each sub-card based on the number of winning entries:
+        let winning_cards = match self.winning_cards_memo.get(&card_nr) {
+            Some(v) => *v,
+            None => 0,
+        };
+        if winning_cards > 0 {
+            for sub_card in (card_nr + 1)..=(card_nr + winning_cards) {
+                counter += self.count_card(sub_card);
             }
         }
-        // process a list of sub-cards:
-        if cards_to_process.len() > 0 {
-            counter += self.count_cards(&cards_to_process);
-        }
-
+        self.card_counter_memo.insert(card_nr, counter);
         counter
     }
 
@@ -124,7 +130,7 @@ impl Day for Day04 {
 
     fn solve2(&mut self) -> String {
         let initial_cards: Vec<u32> = (0..((self.cards.len()) as u32)).collect();
-        let count: u64 = self.count_cards(&initial_cards);
+        let count: u64 = initial_cards.iter().map(|nr| self.count_card(*nr)).sum();
         String::from(format!("{0}", count))
     }
 }
