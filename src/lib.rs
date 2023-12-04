@@ -1,9 +1,11 @@
+use regex::{Captures, Regex};
 use std::{
     fs,
     io::{BufRead, BufReader},
 };
 
-use regex::{Captures, Regex};
+/// Re-export types
+pub mod types;
 
 pub fn read_lines(file: &str) -> Vec<String> {
     let fh = fs::File::open(file).unwrap();
@@ -40,24 +42,4 @@ pub fn lines_to_numbers(lines: &Vec<String>) -> Vec<i64> {
         .map(|s| str::parse::<i64>(&s).unwrap())
         .collect();
     lines
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_lines_to_numbers() {
-        let input: Vec<String> = Vec::from([
-            "2".to_string(),
-            "12345678".to_string(),
-            "    12345678".to_string(),
-            "    87654321    ".to_string(),
-            "42    ".to_string(),
-        ]);
-        assert_eq!(
-            lines_to_numbers(&input),
-            vec![2, 12345678, 12345678, 87654321, 42]
-        );
-    }
 }

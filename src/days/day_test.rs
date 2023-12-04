@@ -1,14 +1,30 @@
 use super::Day;
 use crate::types::{Coord2d, Coord2dMap};
 
+enum TestValue {
+    ValueA(String),
+    ValueB(i64),
+    None,
+}
+
 pub struct DayTest {
     coords: Coord2dMap<String>,
+    a_value: TestValue,
 }
 
 impl DayTest {
     pub fn new() -> DayTest {
         DayTest {
             coords: Coord2dMap::new(),
+            a_value: TestValue::None,
+        }
+    }
+
+    fn create_value(&self, input: i64) -> TestValue {
+        if input < 0 {
+            return TestValue::ValueA(input.to_string());
+        } else {
+            return TestValue::ValueB(input);
         }
     }
 }
@@ -34,6 +50,8 @@ impl Day for DayTest {
                 );
             }
         }
+
+        self.a_value = self.create_value(42);
     }
 
     fn solve1(&self) -> String {
