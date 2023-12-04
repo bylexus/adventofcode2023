@@ -125,7 +125,7 @@ impl Day for Day03 {
         self.parse_input();
     }
 
-    fn solve1(&self) -> String {
+    fn solve1(&mut self) -> String {
         let mut sum = 0;
         for (number_coord, number_str) in self.numbers.iter() {
             if self.is_part_number(number_str, number_coord) {
@@ -136,7 +136,7 @@ impl Day for Day03 {
         String::from(format!("{0}", sum))
     }
 
-    fn solve2(&self) -> String {
+    fn solve2(&mut self) -> String {
         let mut sum = 0;
 
         for (coord, symbol) in self.symbols.iter() {

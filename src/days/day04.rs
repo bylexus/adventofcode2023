@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::Day;
 use adventofcode2023::read_lines;
 use regex::Regex;
@@ -12,6 +14,7 @@ struct Card {
 pub struct Day04 {
     input: Vec<String>,
     cards: Vec<Card>,
+    winning_cards_memo: HashMap<u32, u32>,
 }
 
 impl Day04 {
@@ -19,6 +22,7 @@ impl Day04 {
         Day04 {
             input: Vec::new(),
             cards: Vec::new(),
+            winning_cards_memo: HashMap::new(),
         }
     }
 
@@ -34,36 +38,38 @@ impl Day04 {
             }
             let win = caps.get(1).unwrap().as_str();
             let own = caps.get(2).unwrap().as_str();
-            let winCards: Vec<i64> = win
+            let win_cards: Vec<i64> = win
                 .split(' ')
                 .filter(|s| !s.is_empty())
                 .map(|s| s.trim().parse::<i64>().unwrap())
                 .collect();
-            let ownCards: Vec<i64> = own
+            let own_cards: Vec<i64> = own
                 .split(' ')
                 .filter(|s| !s.is_empty())
                 .map(|s| s.trim().parse::<i64>().unwrap())
                 .collect();
 
             self.cards.push(Card {
-                win: winCards,
-                own: ownCards,
+                win: win_cards,
+                own: own_cards,
             });
         }
     }
 
-    fn count_cards(&self, card_nrs: &Vec<u32>) -> u128 {
-        let mut counter: u128 = 0;
+    fn count_cards(&self, card_nrs: &Vec<u32>) -> u64 {
+        let mut counter: u64 = 0;
         // 1st, count all given cards:
-        counter += card_nrs.len() as u128;
+        counter += card_nrs.len() as u64;
 
         // process each card:
         for card_nr in card_nrs.iter() {
-            let card = &self.cards[*card_nr as usize];
-            let winning_cards = self.count_winning_cards(card);
+            let winning_cards = match self.winning_cards_memo.get(card_nr) {
+                Some(v) => *v,
+                None => 0,
+            };
             if winning_cards > 0 {
                 // process a list of sub-cards:
-                let sub_cards:Vec<u32> = ((card_nr+1)..=(*card_nr  + winning_cards)).collect();
+                let sub_cards: Vec<u32> = ((card_nr + 1)..=(*card_nr + winning_cards)).collect();
                 counter += self.count_cards(&sub_cards);
             }
         }
@@ -97,10 +103,12 @@ impl Day for Day04 {
         self.parse_input();
     }
 
-    fn solve1(&self) -> String {
-        let mut sum: i128 = 0;
-        for card in self.cards.iter() {
-            let mut count = self.count_winning_cards(card);
+    fn solve1(&mut self) -> String {
+        let mut sum = 0;
+        for (nr, card) in self.cards.iter().enumerate() {
+            let count = self.count_winning_cards(card);
+            // store results for solution 2:
+            self.winning_cards_memo.insert(nr as u32, count);
             let points = match count {
                 0 => 0,
                 _ => (2_i128).pow(count - 1),
@@ -110,9 +118,9 @@ impl Day for Day04 {
         String::from(format!("{0}", sum))
     }
 
-    fn solve2(&self) -> String {
+    fn solve2(&mut self) -> String {
         let initial_cards: Vec<u32> = (0..((self.cards.len()) as u32)).collect();
-        let count: u128 = self.count_cards(&initial_cards);
+        let count: u64 = self.count_cards(&initial_cards);
         String::from(format!("{0}", count))
     }
 }

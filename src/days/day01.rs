@@ -35,7 +35,7 @@ impl Day for Day01 {
         self.input = input;
     }
 
-    fn solve1(&self) -> String {
+    fn solve1(&mut self) -> String {
         let mut sum: u32 = 0;
         for line in self.input.iter() {
             let first = line.chars().find(|c| c.is_numeric());
@@ -48,7 +48,7 @@ impl Day for Day01 {
         }
         String::from(format!("{0}", sum))
     }
-    fn solve2(&self) -> String {
+    fn solve2(&mut self) -> String {
         let mut sum: u64 = 0;
         for line in self.input.iter() {
             let all = find_nrs(&self.number_pattern, line);

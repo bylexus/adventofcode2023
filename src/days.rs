@@ -16,6 +16,6 @@ pub trait Day {
     fn day_nr(&self) -> String;
     fn title(&self) -> String;
     fn prepare(&mut self);
-    fn solve1(&self) -> String;
-    fn solve2(&self) -> String;
+    fn solve1(&mut self) -> String;
+    fn solve2(&mut self) -> String;
 }

@@ -26,7 +26,7 @@ impl Day for Day00 {
         self.lines.push(String::from(""));
     }
 
-    fn solve1(&self) -> String {
+    fn solve1(&mut self) -> String {
         let mut maxsum: i64 = 0;
         let mut actsum: i64 = 0;
 
@@ -45,7 +45,7 @@ impl Day for Day00 {
 
         String::from(format!("{0}", maxsum))
     }
-    fn solve2(&self) -> String {
+    fn solve2(&mut self) -> String {
         let mut sum_per_elve: Vec<i64> = Vec::new();
         let re = Regex::new(r"^\d+$").unwrap();
         let mut actsum: i64 = 0;

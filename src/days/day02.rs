@@ -80,7 +80,7 @@ impl Day for Day02 {
         self.parse_input();
     }
 
-    fn solve1(&self) -> String {
+    fn solve1(&mut self) -> String {
         let mut sum = 0;
         for game in self.games.iter() {
             // Check if game is valid
@@ -105,7 +105,7 @@ impl Day for Day02 {
         }
         String::from(format!("{0}", sum))
     }
-    fn solve2(&self) -> String {
+    fn solve2(&mut self) -> String {
         let mut sum = 0;
         for game in self.games.iter() {
             // parse each group:

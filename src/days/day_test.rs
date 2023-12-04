@@ -54,7 +54,7 @@ impl Day for DayTest {
         self.a_value = self.create_value(42);
     }
 
-    fn solve1(&self) -> String {
+    fn solve1(&mut self) -> String {
         String::from(format!(
             "\n{0}\nDimension: {1}x{2}\n",
             self.coords,
@@ -63,7 +63,7 @@ impl Day for DayTest {
         ))
     }
 
-    fn solve2(&self) -> String {
+    fn solve2(&mut self) -> String {
         String::from(format!("{0}", ""))
     }
 }
