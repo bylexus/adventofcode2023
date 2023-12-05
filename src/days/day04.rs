@@ -10,12 +10,16 @@ struct Card {
     own: Vec<i64>,
 }
 
+type CardNumber = u32;
+
 #[derive(Debug)]
 pub struct Day04 {
     input: Vec<String>,
     cards: Vec<Card>,
-    winning_cards_memo: HashMap<u32, u32>,
-    card_counter_memo: HashMap<u32, u64>,
+    // stores the number of winning cards for each card
+    winning_cards_memo: HashMap<CardNumber, u32>,
+    // stores the total count for each card, including gained sub-cards recursively
+    card_counter_memo: HashMap<CardNumber, u64>,
 }
 
 impl Day04 {
@@ -63,7 +67,7 @@ impl Day04 {
     /// is either calculated recursively, or, if already memoized,
     /// returned from the cache.
     /// This makes the calculation super-fast.
-    fn count_card(&mut self, card_nr: u32) -> u64 {
+    fn count_card(&mut self, card_nr: CardNumber) -> u64 {
         let mut counter: u64 = 0;
 
         if let Some(counter_memo) = self.card_counter_memo.get(&card_nr) {
@@ -84,7 +88,7 @@ impl Day04 {
             }
         }
         self.card_counter_memo.insert(card_nr, counter);
-        counter
+        return counter;
     }
 
     fn count_winning_cards(&self, card: &Card) -> u32 {
@@ -118,7 +122,7 @@ impl Day for Day04 {
         for (nr, card) in self.cards.iter().enumerate() {
             let count = self.count_winning_cards(card);
             // store results for solution 2:
-            self.winning_cards_memo.insert(nr as u32, count);
+            self.winning_cards_memo.insert(nr as CardNumber, count);
             let points = match count {
                 0 => 0,
                 _ => (2_i128).pow(count - 1),
@@ -129,7 +133,7 @@ impl Day for Day04 {
     }
 
     fn solve2(&mut self) -> String {
-        let initial_cards: Vec<u32> = (0..((self.cards.len()) as u32)).collect();
+        let initial_cards: Vec<CardNumber> = (0..((self.cards.len()) as CardNumber)).collect();
         let count: u64 = initial_cards.iter().map(|nr| self.count_card(*nr)).sum();
         String::from(format!("{0}", count))
     }

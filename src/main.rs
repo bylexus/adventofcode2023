@@ -1,6 +1,6 @@
 mod days;
 mod types;
-use days::{Day, Day00, Day01, Day02, Day03, Day04, DayTest};
+use days::{Day, Day00, Day01, Day02, Day03, Day04, Day05, DayTest};
 use std::env;
 use std::time::{Duration, Instant};
 use std::vec::Vec;
@@ -28,12 +28,14 @@ fn main() {
             "2" => Box::new(Day02::new()),
             "3" => Box::new(Day03::new()),
             "4" => Box::new(Day04::new()),
+            "5" => Box::new(Day05::new()),
             &_ => panic!("Unknown problem"),
         })
     }
 
     // Run them:
     let mut results: Vec<Result> = Vec::new();
+    let start = Instant::now();
     probs.iter_mut().for_each(|p| {
         let title = p.title();
         let day = p.day_nr();
@@ -85,4 +87,8 @@ fn main() {
             t = r.runtime2
         );
     });
+
+    let total_duration = start.elapsed();
+
+    println!("\n\nGrand Total runtime: {t:?}\n", t = total_duration);
 }
