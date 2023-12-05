@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use super::Day;
 use adventofcode2023::read_lines;
 use regex::Regex;
@@ -49,7 +47,6 @@ impl Day05 {
             .map(|s| s.parse::<i64>().unwrap())
             .collect::<Vec<i64>>();
 
-        // println!("Seeds: {:?}", seeds);
         self.seeds = seeds;
 
         // skip 2nd line:
@@ -93,7 +90,6 @@ impl Day05 {
         if !start_of_block {
             self.material_maps.push(act_map);
         }
-        // println!("Material maps: {:?}", self.material_maps);
     }
 }
 
@@ -108,6 +104,7 @@ impl Day for Day05 {
     fn prepare(&mut self) {
         let input = read_lines("data/day05.txt");
         // let input = read_lines("data/day05-test.txt");
+        // let input = read_lines("data/day05-test2.txt");
         self.input = input;
         self.parse_input();
     }
@@ -116,12 +113,9 @@ impl Day for Day05 {
         let mut final_values: Vec<i64> = Vec::new();
         for seed in self.seeds.iter() {
             let mut act_val = *seed;
-            // print!("Input: {0}, ", act_val);
             for map in self.material_maps.iter() {
                 act_val = find_mapped_value(map, act_val);
-                // print!("{0}, ", act_val);
             }
-            // println!("Output: {0}\n", act_val);
             final_values.push(act_val);
         }
         let min = final_values.iter().min().unwrap();
@@ -129,9 +123,86 @@ impl Day for Day05 {
     }
 
     fn solve2(&mut self) -> String {
-        let mut sum = 0;
-        String::from(format!("{0}", sum))
+        let mut final_values: Vec<i64> = Vec::new();
+        let final_seeds = merge_seeds(self.seeds.clone());
+        for (start, end) in final_seeds.iter() {
+            for seed in *start..*end {
+                let mut act_val = seed;
+                for map in self.material_maps.iter() {
+                    act_val = find_mapped_value(map, act_val);
+                }
+                final_values.push(act_val);
+            }
+        }
+
+        let min = final_values.iter().min().unwrap();
+        String::from(format!("{0}", *min))
     }
+}
+
+/// Merge the seeds table into a overlap-removed seed table.
+/// We check each seed if it overlaps with the existing seeds,
+/// and split / remove them to non-overlapping versions.
+/// At the end, we return a non-overlapping (start, end) pair list.
+fn merge_seeds(mut seeds: Vec<i64>) -> Vec<(i64, i64)> {
+    let mut final_seeds: Vec<(i64, i64)> = Vec::new();
+
+    // takt the last 2 elements (start and len of seed), until
+    // there are no more pairs:
+    while seeds.len() > 0 {
+        let seed_len = seeds.pop().unwrap();
+        let mut seed_start = seeds.pop().unwrap();
+        let mut seed_end = seed_start + seed_len - 1;
+
+        // first seed goes to the final list anyway:
+        if final_seeds.len() == 0 {
+            final_seeds.push((seed_start, seed_end));
+            continue;
+        }
+
+        // Overlaps can happen as follows:
+        //      |--------final seed---------|
+        //           |..... within ....|
+        // |...........| start overlap
+        //               end overlap    |.............|
+        // |.....................................| <-- total overlap
+        // |..| <-- non-overlap
+        //                        non-overlap -->  |...|
+        for fseed in final_seeds.iter() {
+            // insertion seed fits within the target feed: skip it completely, already
+            // covered by the actual seed:
+            if seed_start >= fseed.0 && seed_end <= fseed.1 {
+                seed_end = -1;
+                break;
+            }
+            // does it overlap somehow?
+            if seed_start < fseed.1 && seed_end > fseed.0 {
+                // extract front part:
+                if seed_start < fseed.0 {
+                    seeds.push(seed_start);
+                    seeds.push(fseed.0 - seed_start);
+                }
+                // extract end part:
+                if seed_end > fseed.1 {
+                    seeds.push(fseed.1 + 1);
+                    seeds.push(seed_end - fseed.1);
+                }
+                seed_start = -1;
+                seed_end = -1;
+                break;
+            } else {
+                // no overlap, continue to the next final seed:
+                continue;
+            }
+        }
+        // no overlap, add it to final seeds:
+        if seed_start >= 0 && seed_end > 0 && seed_end >= seed_start {
+            final_seeds.push((seed_start, seed_end));
+        }
+    }
+
+    // tuples with first and last value of a seed
+    final_seeds
 }
 
 fn find_mapped_value(map: &MaterialMap, val: i64) -> i64 {
