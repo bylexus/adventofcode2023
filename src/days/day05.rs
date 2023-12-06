@@ -2,14 +2,14 @@ use super::Day;
 use adventofcode2023::read_lines;
 use regex::Regex;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 struct MapEntry {
     input_start: i64,
     output_start: i64,
     range: i64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct MaterialMap {
     name: String,
     mappings: Vec<MapEntry>,
@@ -98,13 +98,12 @@ impl Day for Day05 {
         String::from("05")
     }
     fn title(&self) -> String {
-        String::from("Day 5: xxxx")
+        String::from("Day 5: If You Give A Seed A Fertilizer")
     }
 
     fn prepare(&mut self) {
         let input = read_lines("data/day05.txt");
         // let input = read_lines("data/day05-test.txt");
-        // let input = read_lines("data/day05-test2.txt");
         self.input = input;
         self.parse_input();
     }
