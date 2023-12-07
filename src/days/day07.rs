@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::HashMap};
+use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
 use super::Day;
 use adventofcode2023::read_lines;
@@ -13,7 +13,7 @@ struct Card {
     type_str: String,
     hand: String,
     bid: u64,
-    card_points: HashMap<char, u64>,
+    card_points: Rc<HashMap<char, u64>>,
 }
 
 impl Card {
@@ -66,7 +66,8 @@ impl Ord for Card {
 #[derive(Debug)]
 pub struct Day07 {
     input: Vec<String>,
-    card_points: HashMap<char, u64>,
+    card_points: Rc<HashMap<char, u64>>,
+    card_points2: Rc<HashMap<char, u64>>,
     cards: Vec<Card>,
 }
 
@@ -74,7 +75,7 @@ impl Day07 {
     pub fn new() -> Day07 {
         Day07 {
             input: Vec::new(),
-            card_points: HashMap::from([
+            card_points: Rc::new(HashMap::from([
                 ('2', 2),
                 ('3', 3),
                 ('4', 4),
@@ -88,7 +89,22 @@ impl Day07 {
                 ('Q', 12),
                 ('K', 13),
                 ('A', 14),
-            ]),
+            ])),
+            card_points2: Rc::new(HashMap::from([
+                ('J', 1),
+                ('2', 2),
+                ('3', 3),
+                ('4', 4),
+                ('5', 5),
+                ('6', 6),
+                ('7', 7),
+                ('8', 8),
+                ('9', 9),
+                ('T', 10),
+                ('Q', 12),
+                ('K', 13),
+                ('A', 14),
+            ])),
             cards: Vec::new(),
         }
     }
@@ -108,7 +124,7 @@ impl Day07 {
                 });
             }
         }
-        println!("{:?}", self.cards);
+        // println!("{:?}", self.cards);
     }
 }
 
@@ -131,6 +147,7 @@ impl Day for Day07 {
         let mut solution: u64 = 0;
 
         for card in self.cards.iter_mut() {
+            card.card_points = self.card_points.clone();
             let (card_type, type_str) = calc_type(card);
             card.card_type = card_type;
             card.type_str = type_str;
@@ -139,10 +156,10 @@ impl Day for Day07 {
         self.cards.sort();
 
         for (i, card) in self.cards.iter().enumerate() {
-            println!(
-                "Cards: {0}, Type: {1} ({2})",
-                card.hand, card.card_type, card.type_str
-            );
+            // println!(
+            //     "Cards: {0}, Type: {1} ({2})",
+            //     card.hand, card.card_type, card.type_str
+            // );
             solution += (i as u64 + 1) * card.bid;
         }
 
@@ -151,6 +168,24 @@ impl Day for Day07 {
 
     fn solve2(&mut self) -> String {
         let mut solution: u64 = 0;
+
+        for card in self.cards.iter_mut() {
+            card.card_points = self.card_points2.clone();
+            let (card_type, type_str) = calc_type2(card);
+            card.card_type = card_type;
+            card.type_str = type_str;
+        }
+
+        self.cards.sort();
+
+        for (i, card) in self.cards.iter().enumerate() {
+            // println!(
+            //     "Cards: {0}, Type: {1} ({2})",
+            //     card.hand, card.card_type, card.type_str
+            // );
+            solution += (i as u64 + 1) * card.bid;
+        }
+
         String::from(format!("{0}", solution))
     }
 }
@@ -178,6 +213,95 @@ fn calc_type(card: &Card) -> (TypeRank, String) {
     }
 
     // figure out the type of the card:
+
+    // five of a kind:
+    if let Some(count) = group_count.get(&5) {
+        if *count == 1 {
+            return (7, "Five of a kind".to_string());
+        }
+    }
+    // four of a kind:
+    if let Some(count) = group_count.get(&4) {
+        if *count == 1 {
+            return (6, "Four of a kind".to_string());
+        }
+    }
+    // Full house: 3 same, and 2 same:
+    if group_count.contains_key(&3) && group_count.contains_key(&2) {
+        return (5, "Full House".to_string());
+    }
+
+    // Three of a kind: 3 same, and 2 different:
+    if group_count.contains_key(&3) && group_count.contains_key(&1) {
+        return (4, "Three of a kind".to_string());
+    }
+
+    // Two pair
+    if let Some(count) = group_count.get(&2) {
+        if *count == 2 {
+            return (3, "Two pair".to_string());
+        }
+    }
+
+    // One Pair
+    if let Some(count_2) = group_count.get(&2) {
+        if let Some(count_1) = group_count.get(&1) {
+            if *count_2 == 1 && *count_1 == 3 {
+                return (2, "One pair".to_string());
+            }
+        }
+    }
+
+    // High card
+    if let Some(count) = group_count.get(&1) {
+        if *count == 5 {
+            return (1, "High card".to_string());
+        }
+    }
+
+    panic!("Unknown card type");
+}
+
+fn calc_type2(card: &Card) -> (TypeRank, String) {
+    let mut card_count: HashMap<char, u64> = HashMap::new();
+    // count the amount of each card in the hand:
+    // count the J's to the most present card:
+    let mut count_j = 0;
+    for c in card.hand.chars() {
+        if c == 'J' {
+            count_j += 1;
+        } else {
+            if let Some(count) = card_count.get(&c) {
+                card_count.insert(c, count + 1);
+            } else {
+                card_count.insert(c, 1);
+            }
+        }
+    }
+    if count_j == 5 {
+        card_count.insert('A', 5);
+    } else {
+        let (c, val) = card_count.iter().max_by(|a, b| a.1.cmp(b.1)).unwrap();
+        // println!("Card: {0}, max char: {1}, max: {2}", card.hand, c, val);
+        card_count.insert(*c, val + count_j);
+    }
+
+    // a list of how many times a certain amount of cards appear:
+    // e.g. for a Two Pair, we have 2 labels that appear 2 times, and one label that appear one time.
+    let mut group_count: HashMap<u64, u64> = HashMap::new();
+    for (c, amount) in card_count.iter() {
+        if *c == 'J' {
+            count_j += amount;
+        } else {
+            if let Some(count) = group_count.get(amount) {
+                group_count.insert(*amount, count + 1);
+            } else {
+                group_count.insert(*amount, 1);
+            }
+        }
+    }
+    // figure out the type of the card:
+    // println!("Card {0}, group counts: {1:?}", card.hand, group_count);
 
     // five of a kind:
     if let Some(count) = group_count.get(&5) {
