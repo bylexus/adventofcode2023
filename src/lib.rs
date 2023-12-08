@@ -43,3 +43,18 @@ pub fn lines_to_numbers(lines: &Vec<String>) -> Vec<i64> {
         .collect();
     lines
 }
+
+/// Euclid's Greatest Common Divisor algorithm
+pub fn euklid_gcd<T: num::traits::PrimInt>(a: T, b: T) -> T {
+    
+    if b.is_zero() {
+        return a;
+    } else {
+        return euklid_gcd(b, a % b);
+    }
+}
+
+/// Smallest Common Multiple
+pub fn scm<T: num::traits::PrimInt>(a: T, b: T) -> T {
+    a * b / euklid_gcd(a, b)
+}

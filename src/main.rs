@@ -1,6 +1,6 @@
 mod days;
 mod types;
-use days::{Day, Day00, Day01, Day02, Day03, Day04, Day05, Day06, Day07, DayTest};
+use days::{Day, Day00, Day01, Day02, Day03, Day04, Day05, Day06, Day07, Day08, DayTest};
 use std::env;
 use std::time::{Duration, Instant};
 use std::vec::Vec;
@@ -31,6 +31,7 @@ fn main() {
             "5" => Box::new(Day05::new()),
             "6" => Box::new(Day06::new()),
             "7" => Box::new(Day07::new()),
+            "8" => Box::new(Day08::new()),
             _ => panic!("Unknown problem"),
         })
     }

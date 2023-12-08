@@ -2,7 +2,6 @@ use std::{cmp::Ordering, collections::HashMap, rc::Rc};
 
 use super::Day;
 use adventofcode2023::read_lines;
-use itertools::Itertools;
 use regex::Regex;
 
 type TypeRank = u64;

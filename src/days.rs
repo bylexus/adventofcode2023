@@ -6,6 +6,7 @@ pub mod day04;
 pub mod day05;
 pub mod day06;
 pub mod day07;
+pub mod day08;
 pub mod day00;
 
 pub use day_test::DayTest;
@@ -16,6 +17,7 @@ pub use day04::Day04;
 pub use day05::Day05;
 pub use day06::Day06;
 pub use day07::Day07;
+pub use day08::Day08;
 pub use day00::Day00;
 
 pub trait Day {
