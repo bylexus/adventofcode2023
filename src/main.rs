@@ -1,6 +1,10 @@
 mod days;
 mod types;
-use days::{Day, Day00, Day01, Day02, Day03, Day04, Day05, Day06, Day07, Day08, DayTest};
+use days::{
+    Day, Day00, Day01, Day02, Day03, Day04, Day05, Day06, Day07, Day08, Day09, Day10, Day11,
+    Day12, Day13, Day14, Day15, Day16, Day17, Day18, Day19, Day20, Day21, Day22, Day23, Day24,
+    Day25, DayTest,
+};
 use std::env;
 use std::time::{Duration, Instant};
 use std::vec::Vec;
@@ -32,6 +36,23 @@ fn main() {
             "6" => Box::new(Day06::new()),
             "7" => Box::new(Day07::new()),
             "8" => Box::new(Day08::new()),
+            "9" => Box::new(Day09::new()),
+            "10" => Box::new(Day10::new()),
+            "11" => Box::new(Day11::new()),
+            "12" => Box::new(Day12::new()),
+            "13" => Box::new(Day13::new()),
+            "14" => Box::new(Day14::new()),
+            "15" => Box::new(Day15::new()),
+            "16" => Box::new(Day16::new()),
+            "17" => Box::new(Day17::new()),
+            "18" => Box::new(Day18::new()),
+            "19" => Box::new(Day19::new()),
+            "20" => Box::new(Day20::new()),
+            "21" => Box::new(Day21::new()),
+            "22" => Box::new(Day22::new()),
+            "23" => Box::new(Day23::new()),
+            "24" => Box::new(Day24::new()),
+            "25" => Box::new(Day25::new()),
             _ => panic!("Unknown problem"),
         })
     }

@@ -14,7 +14,7 @@ impl Day00 {
 
 impl Day for Day00 {
     fn day_nr(&self) -> String {
-        String::from("01")
+        String::from("00")
     }
     fn title(&self) -> String {
         String::from("Hello, World!")

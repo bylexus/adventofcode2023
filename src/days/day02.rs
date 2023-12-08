@@ -70,7 +70,7 @@ impl Day for Day02 {
         String::from("02")
     }
     fn title(&self) -> String {
-        String::from("Day 2: Cube Conundrum")
+        String::from("Cube Conundrum")
     }
 
     fn prepare(&mut self) {
