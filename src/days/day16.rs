@@ -1,5 +1,6 @@
+
 use super::Day;
-use adventofcode2023::read_lines;
+use adventofcode2023::{read_lines, };
 
 #[derive(Debug)]
 pub struct Day16 {
@@ -8,10 +9,13 @@ pub struct Day16 {
 
 impl Day16 {
     pub fn new() -> Day16 {
-        Day16 { input: Vec::new() }
+        Day16 {
+            input: Vec::new(),
+        }
     }
 
-    fn parse_input(&mut self) {}
+    fn parse_input(&mut self) {
+    }
 }
 
 impl Day for Day16 {
