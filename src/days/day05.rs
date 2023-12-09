@@ -1,3 +1,5 @@
+use std::{sync::mpsc::channel, thread};
+
 use super::Day;
 use adventofcode2023::read_lines;
 use regex::Regex;
@@ -124,14 +126,29 @@ impl Day for Day05 {
     fn solve2(&mut self) -> String {
         let mut final_values: Vec<i64> = Vec::new();
         let final_seeds = merge_seeds(self.seeds.clone());
+        let (tx, rx) = channel();
         for (start, end) in final_seeds.iter() {
-            for seed in *start..*end {
-                let mut act_val = seed;
-                for map in self.material_maps.iter() {
-                    act_val = find_mapped_value(map, act_val);
+            let tx_thread = tx.clone();
+            let material_maps = self.material_maps.clone();
+            let start = *start;
+            let end = *end;
+            thread::spawn(move || {
+                let mut min: i64 = i64::MAX;
+                for seed in start..end {
+                    let mut act_val = seed;
+                    for map in material_maps.iter() {
+                        act_val = find_mapped_value(map, act_val);
+                    }
+                    if act_val < min {
+                        min = act_val;
+                    }
                 }
-                final_values.push(act_val);
-            }
+                tx_thread.send(min).unwrap();
+            });
+        }
+        drop(tx);
+        for val in rx.iter() {
+            final_values.push(val);
         }
 
         let min = final_values.iter().min().unwrap();
