@@ -53,6 +53,13 @@ impl Coord2d {
 }
 
 #[allow(dead_code)]
+impl Display for Coord2d {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "(x:{}, y:{})", self.x, self.y)
+    }
+}
+
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Coord2dMap<T> {
     map: HashMap<Coord2d, T>,
