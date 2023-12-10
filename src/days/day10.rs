@@ -4,16 +4,8 @@ use std::collections::HashSet;
 use super::Day;
 use adventofcode2023::{
     read_lines,
-    types::{Coord2d, Coord2dMap},
+    types::{Coord2d, Coord2dMap, Direction},
 };
-
-#[derive(Debug, Clone, Copy)]
-enum Direction {
-    UP,
-    RIGHT,
-    DOWN,
-    LEFT,
-}
 
 #[derive(Debug)]
 pub struct Day10 {
@@ -34,42 +26,26 @@ impl Day10 {
     }
 
     fn parse_input(&mut self) {
+        let lines: i64 = self.input.len().try_into().unwrap();
         for (y, line) in self.input.iter().enumerate() {
             let y: i64 = y.try_into().unwrap();
+            let line_len: i64 = line.len().try_into().unwrap();
             if y == 0 {
                 // fill 4 corners with '.':
                 self.pipe_map.insert(Coord2d { x: -1, y: -1 }, '.');
+                self.pipe_map.insert(Coord2d { x: -1, y: lines }, '.');
+                self.pipe_map.insert(Coord2d { x: line_len, y: -1 }, '.');
                 self.pipe_map.insert(
                     Coord2d {
-                        x: -1,
-                        y: self.input.len().try_into().unwrap(),
-                    },
-                    '.',
-                );
-                self.pipe_map.insert(
-                    Coord2d {
-                        x: line.len().try_into().unwrap(),
-                        y: -1,
-                    },
-                    '.',
-                );
-                self.pipe_map.insert(
-                    Coord2d {
-                        x: line.len().try_into().unwrap(),
-                        y: self.input.len().try_into().unwrap(),
+                        x: line_len,
+                        y: lines,
                     },
                     '.',
                 );
             }
             // insert a border on the left/right:
             self.pipe_map.insert(Coord2d { x: -1, y }, '.');
-            self.pipe_map.insert(
-                Coord2d {
-                    x: line.len().try_into().unwrap(),
-                    y,
-                },
-                '.',
-            );
+            self.pipe_map.insert(Coord2d { x: line_len, y }, '.');
             for (x, chr) in line.chars().enumerate() {
                 let x: i64 = x.try_into().unwrap();
                 // insert a border on the top:
@@ -92,65 +68,10 @@ impl Day10 {
         self.insert_start_pipe(self.start.unwrap());
     }
 
-    /// calc the next pipe pos
-    /// Attention: this does NOT check if the next pipe is even possible:
-    /// we assume that we are in a valid pipe circle.
-    fn next_pipe(&self, act_pos: Coord2d, last_pos: Coord2d) -> Coord2d {
-        let act_pipe = self.pipe_map.get(&act_pos).unwrap();
-
-        if *act_pipe == '|' {
-            let mut next_pos = act_pos.up();
-            if next_pos == last_pos {
-                next_pos = act_pos.down();
-            }
-            return next_pos;
-        }
-
-        if *act_pipe == '-' {
-            let mut next_pos = act_pos.left();
-            if next_pos == last_pos {
-                next_pos = act_pos.right();
-            }
-            return next_pos;
-        }
-
-        if *act_pipe == 'L' {
-            let mut next_pos = act_pos.up();
-            if next_pos == last_pos {
-                next_pos = act_pos.right();
-            }
-            return next_pos;
-        }
-
-        if *act_pipe == 'J' {
-            let mut next_pos = act_pos.up();
-            if next_pos == last_pos {
-                next_pos = act_pos.left();
-            }
-            return next_pos;
-        }
-
-        if *act_pipe == '7' {
-            let mut next_pos = act_pos.left();
-            if next_pos == last_pos {
-                next_pos = act_pos.down();
-            }
-            return next_pos;
-        }
-        if *act_pipe == 'F' {
-            let mut next_pos = act_pos.right();
-            if next_pos == last_pos {
-                next_pos = act_pos.down();
-            }
-            return next_pos;
-        }
-
-        panic!("Invalid pipe found: {0} at {1}", act_pipe, act_pos);
-    }
-
     fn insert_start_pipe(&mut self, start_pos: Coord2d) {
         // Inserts the correct start pipe tile: The start now is a 'S',
-        // but it need to be replaced by the correct pipe:
+        // but it need to be replaced by the pipe fitting in the start position:
+        // we look at the surrounding pipes, and decide based on them.
         let top = self.pipe_map.get(&start_pos.up()).unwrap();
         let right = self.pipe_map.get(&start_pos.right()).unwrap();
         let bottom = self.pipe_map.get(&start_pos.down()).unwrap();
@@ -176,36 +97,6 @@ impl Day10 {
         }
     }
 
-    fn find_entry_pipe(&self, start_pos: Coord2d) -> Coord2d {
-        // up
-        if let Some(pipe) = self.pipe_map.get(&start_pos.up()) {
-            if *pipe == '|' || *pipe == 'F' || *pipe == '7' {
-                return start_pos.up();
-            }
-        }
-        // down
-        if let Some(pipe) = self.pipe_map.get(&start_pos.down()) {
-            if *pipe == '|' || *pipe == 'J' || *pipe == 'L' {
-                return start_pos.down();
-            }
-        }
-        // left
-        if let Some(pipe) = self.pipe_map.get(&start_pos.left()) {
-            if *pipe == '-' || *pipe == 'L' || *pipe == 'F' {
-                return start_pos.left();
-            }
-        }
-
-        // right
-        if let Some(pipe) = self.pipe_map.get(&start_pos.right()) {
-            if *pipe == '-' || *pipe == '7' || *pipe == 'J' {
-                return start_pos.right();
-            }
-        }
-
-        panic!("No start pipe found");
-    }
-
     fn get_left_of(&self, act_pos: Coord2d, act_dir: Direction) -> Coord2d {
         match act_dir {
             Direction::UP => act_pos.left(),
@@ -223,6 +114,11 @@ impl Day10 {
         }
     }
 
+    /// Returns the new direction after moving onto a tile from a
+    /// specific direction.
+    /// act_pos is the tile we're moved to (so where we are now),
+    /// act_dir is the direction in which we were heading while moving.
+    /// The function returns the direction in which we can move away from the tile.
     fn get_new_dir(&self, act_pos: Coord2d, act_dir: Direction) -> Direction {
         let act_pipe = *self.pipe_map.get(&act_pos).unwrap();
         match act_pipe {
@@ -268,6 +164,11 @@ impl Day10 {
         }
     }
 
+    /// This function is called after all flood-filling is done: all non-circle tiles are now
+    /// marked with either 'l' or 'r', depending on their position relative to the circle.
+    /// Because the tile a -1, -1 is always the outer tile, we can determine which of 'r' or 'l'
+    /// contains inner tile (just the opposite of the -1,-1 mark.)
+    /// It returns the number of tiles that are contained by the circle pipe.
     fn count_inner_tiles(&self) -> usize {
         let inner_marker = match self.pipe_map.get(&Coord2d { x: -1, y: -1 }).unwrap() {
             'r' => 'l',
@@ -278,6 +179,15 @@ impl Day10 {
             .iter()
             .filter(|(_, tile)| **tile == inner_marker)
             .count()
+    }
+
+    fn fill_neighbour_areas(&mut self, act_pos: Coord2d, act_dir: Direction) {
+        // flood-fill left and right side of the coordinate. Here, left/right is relative to the
+        // actual heading direction:
+        let left_coord = self.get_left_of(act_pos, act_dir);
+        let right_coord = self.get_right_of(act_pos, act_dir);
+        self.fill_area(left_coord, 'l');
+        self.fill_area(right_coord, 'r');
     }
 
     // Flood fill given area, starting at coord.
@@ -291,7 +201,7 @@ impl Day10 {
         if let None = self.pipe_map.get(&coord) {
             return;
         }
-        // check if the coord is a circle pipe position:
+        // check if the actual coord is a circle pipe position:
         if self.circle_pipe.contains(&coord) {
             return;
         }
@@ -303,6 +213,7 @@ impl Day10 {
         // mark myself:
         self.pipe_map.insert(coord, marker);
 
+        // fill my surroundings:
         self.fill_area(coord.up(), marker);
         self.fill_area(coord.down(), marker);
         self.fill_area(coord.left(), marker);
@@ -338,22 +249,30 @@ impl Day for Day10 {
         let mut solution: usize = 0;
         let start_coord = self.start.unwrap();
 
+        // find start direction
+        let mut act_dir = self.get_new_dir(start_coord, Direction::DOWN);
+
         // println!("Start: {0}", self.start.unwrap());
         // println!("{0}", self.pipe_map);
 
-        let mut last_pos = start_coord;
-        let mut act_pos = self.find_entry_pipe(start_coord);
-
         // walk the pipes!
+        // Note that we don't need to check if the next tile is valid: The data is always
+        // valid, so if we start from the given Start position, it's sure that we're on a circle path.
+        let mut act_pos = start_coord;
         loop {
             self.circle_pipe.insert(act_pos);
-            // find the next pipe
-            let next_pos = self.next_pipe(act_pos, last_pos);
-            if next_pos == start_coord {
+            // do I need to turn, because I'm im a corner?
+            act_dir = self.get_new_dir(act_pos, act_dir);
+            // now, move forward
+            match act_dir {
+                Direction::UP => act_pos = act_pos.up(),
+                Direction::RIGHT => act_pos = act_pos.right(),
+                Direction::DOWN => act_pos = act_pos.down(),
+                Direction::LEFT => act_pos = act_pos.left(),
+            }
+            if act_pos == start_coord {
                 break;
             }
-            last_pos = act_pos;
-            act_pos = next_pos;
         }
 
         solution = match self.circle_pipe.len() % 2 {
@@ -384,19 +303,16 @@ impl Day for Day10 {
         loop {
             // flood-fill left and right side of the pipe. Here, left/right is relative to the
             // actual heading direction:
-            let left_coord = self.get_left_of(act_pos, act_dir);
-            let right_coord = self.get_right_of(act_pos, act_dir);
-            self.fill_area(left_coord, 'l');
-            self.fill_area(right_coord, 'r');
+            self.fill_neighbour_areas(act_pos, act_dir);
 
             // do I need to turn, because I'm im a corner?
-            act_dir = self.get_new_dir(act_pos, act_dir);
-            // flood-fill again after turn, left and right side of the pipe. Here, left/right is relative to the
-            // actual heading direction:
-            let left_coord = self.get_left_of(act_pos, act_dir);
-            let right_coord = self.get_right_of(act_pos, act_dir);
-            self.fill_area(left_coord, 'l');
-            self.fill_area(right_coord, 'r');
+            let next_dir = self.get_new_dir(act_pos, act_dir);
+            if next_dir != act_dir {
+                // flood-fill again after turn, left and right side of the pipe. Here, left/right is relative to the
+                // actual heading direction:
+                act_dir = next_dir;
+                self.fill_neighbour_areas(act_pos, act_dir);
+            }
 
             // now, move forward
             match act_dir {
@@ -410,7 +326,8 @@ impl Day for Day10 {
                 break;
             }
         }
-
+        // println!("Start: {0}", start_coord);
+        // println!("{0}", self.pipe_map);
 
         let solution: usize = self.count_inner_tiles();
         String::from(format!("{0}", solution))
