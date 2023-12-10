@@ -1,5 +1,5 @@
 use super::Day;
-use adventofcode2023::read_lines;
+use alex_lib::read_lines;
 
 #[derive(Debug)]
 pub struct Day24 {

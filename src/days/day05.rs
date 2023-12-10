@@ -1,7 +1,7 @@
 use std::{sync::mpsc::channel, thread};
 
 use super::Day;
-use adventofcode2023::read_lines;
+use alex_lib::read_lines;
 use regex::Regex;
 
 #[derive(Debug, Clone, Copy)]

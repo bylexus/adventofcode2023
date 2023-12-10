@@ -1,5 +1,6 @@
+use alex_lib::types::{Coord2dMap, Coord2d};
+
 use super::Day;
-use crate::types::{Coord2d, Coord2dMap};
 
 enum TestValue {
     ValueA(String),

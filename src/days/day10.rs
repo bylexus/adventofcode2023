@@ -1,11 +1,9 @@
 use core::panic;
 use std::collections::HashSet;
 
+use alex_lib::{types::{Coord2dMap, Coord2d, Direction}, read_lines};
+
 use super::Day;
-use adventofcode2023::{
-    read_lines,
-    types::{Coord2d, Coord2dMap, Direction},
-};
 
 #[derive(Debug)]
 pub struct Day10 {

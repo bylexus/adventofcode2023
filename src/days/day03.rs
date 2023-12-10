@@ -1,6 +1,4 @@
-use adventofcode2023::read_lines;
-
-use crate::types::{Coord2d, Coord2dMap};
+use alex_lib::{read_lines, types::{Coord2dMap, Coord2d}};
 
 use super::Day;
 

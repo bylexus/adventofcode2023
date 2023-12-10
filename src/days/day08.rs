@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::Day;
-use adventofcode2023::{read_lines, scm};
+use alex_lib::{read_lines, lcm};
 use regex::Regex;
 
 #[derive(Debug)]
@@ -121,7 +121,7 @@ impl Day for Day08 {
         }
         let mut a = path_lengths[0];
         for i in 1..path_lengths.len() {
-            a = scm(a, path_lengths[i]);
+            a = lcm(a, path_lengths[i]);
         }
         String::from(format!("{0}", a))
     }
