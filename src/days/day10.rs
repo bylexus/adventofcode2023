@@ -373,7 +373,6 @@ impl Day for Day10 {
      * - somit gilt: alle "links"-Flächen sind innen, alle "rechts" flächen aussen (oder umgekehrt)
      */
     fn solve2(&mut self) -> String {
-        let mut solution: usize = 0;
         let start_coord = self.start.unwrap();
 
         // find start direction
@@ -382,9 +381,7 @@ impl Day for Day10 {
 
         // Walk the pipes, fill left / right areas
         let mut act_pos = start_coord;
-        let mut loop_count = 0;
         loop {
-            loop_count += 1;
             // flood-fill left and right side of the pipe. Here, left/right is relative to the
             // actual heading direction:
             let left_coord = self.get_left_of(act_pos, act_dir);
@@ -413,29 +410,9 @@ impl Day for Day10 {
                 break;
             }
         }
-        // println!("\n\n{0}", self.pipe_map);
 
-        for c in self.circle_pipe.iter() {
-            self.pipe_map.insert(*c, '*');
-        }
 
-        // println!("\n\n{0}", self.pipe_map);
-
-        solution = self.count_inner_tiles();
-
-        // println!("Entry: {0}", act_pos);
-
-        // // walk the pipes!
-        // loop {
-        //     self.circle_pipe.insert(act_pos);
-        //     // find the next pipe
-        //     let next_pos = self.next_pipe(act_pos, last_pos);
-        //     if next_pos == start_coord {
-        //         break;
-        //     }
-        //     last_pos = act_pos;
-        //     act_pos = next_pos;
-        // }
+        let solution: usize = self.count_inner_tiles();
         String::from(format!("{0}", solution))
     }
 }
