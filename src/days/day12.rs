@@ -12,6 +12,10 @@ pub struct Day12 {
     data: Vec<Entry>,
 }
 
+/// This seems to be a Nonogram problem. For Solution 1,
+/// my brute-force attempt (find all permutations) was working,
+/// but for Solution 2, this does not. So I need to implement a
+/// Nonogram solver!
 impl Day12 {
     pub fn new() -> Day12 {
         Day12 {
@@ -91,8 +95,8 @@ impl Day for Day12 {
     }
 
     fn prepare(&mut self) {
-        // let input = read_lines("data/day12.txt");
-        let input = read_lines("data/day12-test.txt");
+        let input = read_lines("data/day12.txt");
+        // let input = read_lines("data/day12-test.txt");
         self.input = input
             .iter()
             .map(|s| s.trim().to_string())
@@ -103,32 +107,19 @@ impl Day for Day12 {
 
     fn solve1(&mut self) -> String {
         let mut solution: u64 = 0;
-        let mut solution2: u64 = 0;
         // println!("{:?}", self.data);
 
         for entry in &self.data {
-            println!("springs: {:?}", entry.springs);
             let permutations = self.permute_line(&entry.springs);
             // println!("perms  : {:?}", permutations);
             let match_count = self.count_group_match(&permutations, &entry.groups);
-            println!(
-                "match  : {:?}, groups: {:?}",
-                match_count,
-                entry.groups.len()
-            );
-            println!(
-                "match 5 times  : {:?}",
-                match_count.pow(match_count.try_into().unwrap())
-            );
             solution += match_count;
-            solution2 += (match_count.pow(5));
         }
-        println!("Solution 2: {:?}", solution2);
         String::from(format!("{0}", solution))
     }
 
     fn solve2(&mut self) -> String {
         let mut solution: u64 = 0;
-        String::from(format!("{0}", solution))
+        String::from(format!("--- No solutiono for now ---"))
     }
 }
