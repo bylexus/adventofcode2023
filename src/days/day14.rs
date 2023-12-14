@@ -4,6 +4,7 @@ use std::hash::{Hash, Hasher};
 
 use super::Day;
 use alex_lib::read_lines;
+use num::Integer;
 
 #[derive(Debug)]
 pub struct Day14 {
@@ -138,7 +139,7 @@ impl Day for Day14 {
 
     fn solve1(&mut self) -> String {
         let mut solution: u64 = 0;
-        self.print_field();
+        // self.print_field();
 
         // move all rocks:
         for y in 0..self.field.len() {
@@ -151,7 +152,7 @@ impl Day for Day14 {
             }
         }
 
-        self.print_field();
+        // self.print_field();
         solution = self.calc_load(&self.field);
         String::from(format!("{0}", solution))
     }
@@ -163,11 +164,10 @@ impl Day for Day14 {
         // let mut cycles = 20;
 
         self.field = self.field2.clone();
-        println!("Start");
-        self.print_field();
+        // self.print_field();
         let mut first_cycle = 0;
 
-        for _ in 1..=cycles {
+        while cycle_count < cycles {
             cycle_count += 1;
             // move all rocks north:
             for y in 0..self.field.len() {
@@ -202,47 +202,28 @@ impl Day for Day14 {
                 }
             }
 
-            let load = self.calc_load(&self.field);
-            self.loads.push(load);
+            // let load = self.calc_load(&self.field);
+            // println!("Load: {0}", load);
+            // self.loads.push(load);
 
             // calc hash of actual field:
             let hash = format!("{:?}", self.field);
+            // if we detect a cycle, we fast-forward the pointer to the last position before the
+            // upper cycle limit, and only process the remaining part of the cycle:
             match self.field_hashes.get(&hash) {
                 Some(first_seen) => {
-                    println!(
-                        "Cycle detected after {0} cycles: map already seen at cycle: {1}",
-                        cycle_count, first_seen
-                    );
-                    first_cycle = *first_seen;
-                    break;
+                    let cycle_len = cycle_count - *first_seen;
+                    cycle_count = (cycles - cycle_count) / cycle_len * cycle_len + cycle_count;
+                    self.field_hashes.clear();
                 }
                 None => {
                     self.field_hashes.insert(hash, cycle_count);
                 }
             }
         }
-        // solution_index = first_cycle + (cycles - (cycles - frist_cycle-1) % (cycle_count - first_cycle));
+        let load = self.calc_load(&self.field);
+        solution = load;
 
-        // let solution_index =
-        //     (cycles - (first_cycle - 1)) % (cycle_count - first_cycle) + (first_cycle - 1) - 1;
-        // let solution_index =
-        //     first_cycle + ((cycles - (first_cycle - 1)) % (cycle_count - first_cycle - 1));
-        println!("All results: {:?}", self.loads);
-
-        println!("cycle cout: {}", cycle_count);
-        println!("first cycle: {}", first_cycle);
-        let no_circles = first_cycle - 1;
-        println!("no circles: {}", no_circles);
-        let cycle_len = cycle_count - first_cycle;
-        println!("cycle_len: {}", cycle_len);
-        let to_go = cycles - no_circles;
-        println!("to_go: {}", to_go);
-        let solution_index = (to_go % cycle_len) + no_circles - 1;
-        println!("solution index: {0}", solution_index);
-        solution = self.loads[solution_index as usize];
-
-        // self.print_field();
-        // solution = self.calc_load(&self.field);
         String::from(format!("{0}", solution))
     }
 }
