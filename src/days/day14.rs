@@ -1,10 +1,7 @@
-use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
 
 use super::Day;
 use alex_lib::read_lines;
-use num::Integer;
 
 #[derive(Debug)]
 pub struct Day14 {
@@ -12,7 +9,6 @@ pub struct Day14 {
     field: Vec<Vec<char>>,
     field2: Vec<Vec<char>>,
     field_hashes: HashMap<String, u64>,
-    loads: Vec<u64>,
 }
 
 impl Day14 {
@@ -22,7 +18,6 @@ impl Day14 {
             field: Vec::new(),
             field2: Vec::new(),
             field_hashes: HashMap::new(),
-            loads: Vec::new(),
         }
     }
 
@@ -37,7 +32,7 @@ impl Day14 {
         self.field2 = self.field.clone();
     }
 
-    fn print_field(&self) {
+    fn _print_field(&self) {
         for line in self.field.iter() {
             for c in line.iter() {
                 print!("{0}", c);
@@ -138,8 +133,8 @@ impl Day for Day14 {
     }
 
     fn solve1(&mut self) -> String {
-        let mut solution: u64 = 0;
-        // self.print_field();
+        let solution: u64;
+        // self._print_field();
 
         // move all rocks:
         for y in 0..self.field.len() {
@@ -152,20 +147,17 @@ impl Day for Day14 {
             }
         }
 
-        // self.print_field();
+        // self._print_field();
         solution = self.calc_load(&self.field);
         String::from(format!("{0}", solution))
     }
 
     fn solve2(&mut self) -> String {
-        let mut solution: u64 = 0;
+        let solution: u64;
         let mut cycle_count = 0;
-        let mut cycles = 1000000000;
-        // let mut cycles = 20;
+        let cycles = 1000000000;
 
         self.field = self.field2.clone();
-        // self.print_field();
-        let mut first_cycle = 0;
 
         while cycle_count < cycles {
             cycle_count += 1;
@@ -201,10 +193,6 @@ impl Day for Day14 {
                     }
                 }
             }
-
-            // let load = self.calc_load(&self.field);
-            // println!("Load: {0}", load);
-            // self.loads.push(load);
 
             // calc hash of actual field:
             let hash = format!("{:?}", self.field);
