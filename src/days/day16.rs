@@ -1,7 +1,7 @@
-use log::{debug, error, log_enabled, info, Level};
 use std::{
     collections::{HashMap, VecDeque},
-    sync::{Arc, Mutex}, thread::available_parallelism,
+    sync::{Arc, Mutex},
+    thread::available_parallelism,
 };
 
 use alex_lib::{
@@ -112,11 +112,10 @@ impl Day for Day16 {
 
         let parallels = match available_parallelism() {
             Ok(n) => n.get(),
-            Err(_) => 1
+            Err(_) => 1,
         };
         let mut tpool = ThreadPool::new(parallels);
         let results = Arc::new(Mutex::new(Vec::new()));
-
 
         // now, for each start position, calculate the energy
         for (start_pos, start_dir) in start_positions {
