@@ -199,6 +199,11 @@ impl Day for Day17 {
                     n.min_total_cost = new_cost;
                     n.directions = (*act_node.borrow()).directions.clone();
                     n.directions.push(next_dir);
+                }else if new_cost == n.min_total_cost {
+                    if n.directions.len() >= (*act_node.borrow()).directions.len() {
+                        n.directions = (*act_node.borrow()).directions.clone();
+                        n.directions.push(next_dir);
+                    }
                 }
             }
 
