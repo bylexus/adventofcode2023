@@ -194,7 +194,7 @@ impl Day18 {
 
         while queue.len() > 0 {
             let coord = queue.pop_front().unwrap();
-            if let Some(c) =  self.dig_field.get(&coord) {
+            if let Some(c) = self.dig_field.get(&coord) {
                 if *c == '.' || *c == ' ' {
                     self.dig_field.insert(coord.clone(), '*');
                     queue.push_back(coord.up());
@@ -230,69 +230,118 @@ impl Day for Day18 {
     /// flood fill an unknown area. I will re-use some of
     /// the code from this day.
     fn solve1(&mut self) -> String {
-        let mut solution: i64 = 0;
+        let solution: i64;
 
-        // // find start coord: take any coord with a field entry:
-        // let mut start_coord = *self
-        //     .dig_field
-        //     .iter()
-        //     .find(|(_, entry)| **entry == '#')
-        //     .unwrap()
-        //     .0;
-
-        // self.print_field();
-
-        // // find start direction
-        // let mut act_dir = self.get_new_dir(start_coord, Direction::UP);
-        // println!("Start pos: {}, Start dir: {:?}", start_coord, act_dir);
-
-        // // Walk the field, fill left / right areas
-        // let mut act_pos = start_coord;
-        // let mut field_count = 0;
         self.fill_area(Coord2d {
             x: self.dig_field.min_x(),
             y: self.dig_field.min_y(),
         });
 
-        // loop {
-        //     // count the field border length and
-        //     // store its coords:
-        //     field_count += 1;
-
-        //     // flood-fill left and right side of the dig line. Here, left/right is relative to the
-        //     // actual heading direction:
-        //     self.fill_neighbour_areas(act_pos, act_dir);
-
-        //     // do I need to turn, because I'm im a corner?
-        //     let next_dir = self.get_new_dir(act_pos, act_dir);
-        //     if next_dir != act_dir {
-        //         // flood-fill again after turn, left and right side of the pipe. Here, left/right is relative to the
-        //         // actual heading direction:
-        //         act_dir = next_dir;
-        //         self.fill_neighbour_areas(act_pos, act_dir);
-        //     }
-
-        //     // now, move forward
-        //     match act_dir {
-        //         Direction::UP => act_pos = act_pos.up(),
-        //         Direction::RIGHT => act_pos = act_pos.right(),
-        //         Direction::DOWN => act_pos = act_pos.down(),
-        //         Direction::LEFT => act_pos = act_pos.left(),
-        //     }
-
-        //     if act_pos == start_coord {
-        //         break;
-        //     }
-        // }
-        let fill_count:i64 = self.dig_field.iter().filter(|(_, c)| **c == '*').count() as i64;
+        let fill_count: i64 = self.dig_field.iter().filter(|(_, c)| **c == '*').count() as i64;
         solution = self.dig_field.width() * self.dig_field.height() - fill_count;
         // self.print_field();
-        // println!("Border field count: {}", field_count);
         String::from(format!("{0}", solution))
     }
 
+    /// OK, this is far too big for a flood fill...
+    /// But there is the "Shoelace Algorithm", to calculate the area of an irregular polygon:
+    /// https://www.themathdoctors.org/polygon-coordinates-and-areas/
+    /// Let's say the we have an n-gon of A1-A2-A3-...-An.
+    /// 
+    /// Let's say that the coordinates of Ai are (Xi, Yi) and we have all the Xi's and Yi's. 
+    /// Then the area A is given by the 'ladder':
+    /// 
+    ///           |x1   y1|
+    ///           |x2   y2|
+    ///           |x3   y3|
+    ///           |   .   |
+    ///           |   .   |
+    /// A = 1/2 * |   .   |
+    ///           |   .   |
+    ///           |   .   |
+    ///           |   .   |
+    ///           |xn   yn|
+    ///           |x1   y1|    <-- Note that this is the first row,
+    ///                            repeated. 
+    /// 
+    /// How do you evaluate the ladder?  I'll explain. 
+    /// 
+    /// You have to multiply each number of the first column with the number in the second column of the next row.
+    /// Sum the products, and call the sum S1. 
+    /// 
+    /// Then multiply each number of the second column with the number in the first column of the next row. 
+    /// Sum the products, and call the sum S2. 
+    /// 
+    /// Finally, 
+    /// 
+    /// A = 1/2 * |S1 - S2|
+    /// 
+    /// where |x| denotes the absolute value.
+    /// 
+    /// NOTE: I also read some other's source code, for example that one had the final clue:
+    /// https://github.com/pkusensei/adventofcode2023/blob/4bad47d109c8b3c72ee44f2fd5964f4e369545fc/d18/src/lib.rs
     fn solve2(&mut self) -> String {
-        let mut solution: u64 = 0;
+        let mut solution: i64 = 0;
+        let mut instructions: Vec<Instruction> = Vec::new();
+        let mut coords: Vec<Coord2d> = Vec::new();
+
+        // Re-parse input:
+        let matcher = Regex::new(r"#([a-fA-F0-9]{5})(\d)").unwrap();
+        for orig_instr in self.instructions.iter() {
+            let groups = matcher.captures(&orig_instr.color).unwrap();
+            instructions.push(Instruction {
+                dir: match groups.get(2).unwrap().as_str() {
+                    "0" => Direction::RIGHT,
+                    "1" => Direction::DOWN,
+                    "2" => Direction::LEFT,
+                    "3" => Direction::UP,
+                    _ => panic!("Unknown direction"),
+                },
+                color: "".to_string(),
+                steps: usize::from_str_radix(groups.get(1).unwrap().as_str(), 16).unwrap(),
+            });
+        }
+
+        // println!("Instructions: {:?}", instructions);
+
+        // Fill in all coordinates as the shoelace algorithm requires:
+        let mut act_coord = Coord2d {
+            x: 0, y: 0
+        };
+        let mut boundary_length = 0;
+
+        for instr in instructions.iter() {
+            match instr.dir {
+                Direction::UP => {
+                    act_coord = act_coord.up_n(instr.steps as i64)
+                }
+                Direction::RIGHT => {
+                    act_coord = act_coord.right_n(instr.steps as i64)
+                }
+                Direction::DOWN => {
+                    act_coord = act_coord.down_n(instr.steps as i64)
+                }
+                Direction::LEFT => {
+                    act_coord = act_coord.left_n(instr.steps as i64)
+                }
+            }
+            boundary_length += instr.steps as i64;
+            coords.push(act_coord);
+        }
+        // double the first entry:
+        coords.push(coords[0]);
+
+        // Now, calc the area using the Shoelace algorithm:
+        let mut s1:i64 = 0;
+        let mut s2:i64 = 0;
+        for i in 0..coords.len()-1 {
+            s1 += coords[i].x * coords[i + 1].y;
+            s2 += coords[i].y * coords[i + 1].x;
+        }
+        // also add the boundary length (half of it, as the shoelace includes the boundary on one side),
+        // and remove 1 from the solution (start of the boundary was visited twice):
+        solution = (s1 - s2).abs() / 2 + boundary_length / 2 + 1;
+
         String::from(format!("{0}", solution))
     }
 }
