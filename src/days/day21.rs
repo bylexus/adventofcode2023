@@ -64,10 +64,70 @@ impl Day21 {
         next_pos
     }
 
+    // Wraps around at the field's edges
+    fn get_wrapped_coord(&self, pos: &Coord2d) -> Coord2d {
+        let height = self.field.len() as i64;
+        let width = self.field[0].len() as i64;
+        let mut new_x = pos.x;
+        let mut new_y = pos.y;
+        // new_x = 10, width = 10 --> new_x = 0
+        if new_x >= width {
+            new_x = new_x % width;
+        } else if new_x < 0 {
+            // e.g.:
+            // -  new_x = -1, width = 10 --> new_x = 9
+            // -  new_x = -2, width = 10 --> new_x = 8
+            // -  new_x = -8, width = 5 --> new_width = 2
+            new_x = (new_x % width);
+            if new_x < 0 {
+                new_x += width;
+            }
+        }
+        if new_y >= height {
+            new_y = new_y % height;
+        } else if new_y < 0 {
+            new_y = (new_y % height);
+            if new_y < 0 {
+                new_y += height;
+            }
+        }
+
+        Coord2d { x: new_x, y: new_y }
+    }
+
+    fn get_next_infinite_pos(&self, pos: &Coord2d) -> Vec<Coord2d> {
+        let mut next_pos: Vec<Coord2d> = Vec::new();
+        let up = pos.up();
+        let up_wrapped = self.get_wrapped_coord(&up);
+        if self.field[up_wrapped.y as usize][up_wrapped.x as usize] != '#' {
+            next_pos.push(up);
+        }
+        let right = pos.right();
+        let right_wrapped = self.get_wrapped_coord(&right);
+        if self.field[right_wrapped.y as usize][right_wrapped.x as usize] != '#' {
+            next_pos.push(right);
+        }
+        let down = pos.down();
+        let down_wrapped = self.get_wrapped_coord(&down);
+        if self.field[down_wrapped.y as usize][down_wrapped.x as usize] != '#' {
+            next_pos.push(down);
+        }
+        let left = pos.left();
+        let left_wrapped = self.get_wrapped_coord(&left);
+        if self.field[left_wrapped.y as usize][left_wrapped.x as usize] != '#' {
+            next_pos.push(left);
+        }
+
+        next_pos
+    }
+
     fn print_field(&self, visited: &Vec<Coord2d>) {
         for (y, line) in self.field.iter().enumerate() {
             for (x, c) in line.iter().enumerate() {
-                if visited.contains(&Coord2d { x: x as i64, y: y as i64 }) {
+                if visited.contains(&Coord2d {
+                    x: x as i64,
+                    y: y as i64,
+                }) {
                     print!("O");
                 } else {
                     print!("{}", c);
@@ -88,8 +148,8 @@ impl Day for Day21 {
     }
 
     fn prepare(&mut self) {
-        let input = read_lines("data/day21.txt");
-        // let input = read_lines("data/day21-test.txt");
+        // let input = read_lines("data/day21.txt");
+        let input = read_lines("data/day21-test.txt");
         self.input = input
             .iter()
             .filter(|x| !x.is_empty())
@@ -114,13 +174,30 @@ impl Day for Day21 {
             // self.print_field(&working_pos);
             next_pos = Vec::new();
         }
-       solution = working_pos.iter().unique().count() as u64; 
+        solution = working_pos.iter().unique().count() as u64;
 
         String::from(format!("{0}", solution))
     }
 
     fn solve2(&mut self) -> String {
         let mut solution: u64 = 0;
+        let mut working_pos: Vec<Coord2d> = Vec::new();
+        let mut next_pos: Vec<Coord2d> = Vec::new();
+        // let steps = 64;
+        let steps = 5000;
+
+        working_pos.push(self.start_pos.unwrap());
+
+        for i in 0..steps {
+            for pos in working_pos.iter() {
+                next_pos.append(&mut self.get_next_infinite_pos(pos));
+            }
+            working_pos = next_pos.iter().unique().cloned().collect();
+            // self.print_field(&working_pos);
+            next_pos = Vec::new();
+        }
+        solution = working_pos.iter().unique().count() as u64;
+
         String::from(format!("{0}", solution))
     }
 }
