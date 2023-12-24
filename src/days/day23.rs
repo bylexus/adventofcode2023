@@ -161,9 +161,31 @@ impl Day23 {
 
         let mut my_visited = visited.clone();
         my_visited.insert(field.coord);
-        let next_nodes =
-            self.find_unvisited_neighbour_nodes(field, &my_visited, treat_slopes_as_path);
+
+        let mut count_straight = 0;
+        let mut next_nodes;
+        // let mut act_field = self.field.get(&field.coord).unwrap().clone();
+        // loop {
+        //     next_nodes = self.find_unvisited_neighbour_nodes(
+        //         &act_field.as_ref().borrow(),
+        //         &my_visited,
+        //         treat_slopes_as_path,
+        //     );
+        //     if next_nodes.len() == 0 {
+        //         return 0;
+        //     }
+        //     if next_nodes.len() == 1 {
+        //         count_straight += 1;
+        //         act_field = next_nodes[0].clone();
+        //         my_visited.insert(act_field.as_ref().borrow().coord);
+        //         next_nodes.clear();
+        //     } else {
+        //         break;
+        //     }
+        // }
         let mut max = 0;
+        next_nodes =
+            self.find_unvisited_neighbour_nodes(field, &my_visited, treat_slopes_as_path);
         for n in next_nodes {
             max = std::cmp::max(
                 max,
@@ -177,7 +199,7 @@ impl Day23 {
             // }
         }
         // self.path_memo.borrow_mut().insert(field.coord, Some(max));
-        return max;
+        return max + count_straight;
     }
 }
 
@@ -190,8 +212,8 @@ impl Day for Day23 {
     }
 
     fn prepare(&mut self) {
-        let input = read_lines("data/day23.txt");
-        // let input = read_lines("data/day23-test.txt");
+        // let input = read_lines("data/day23.txt");
+        let input = read_lines("data/day23-test.txt");
         self.input = input
             .iter()
             .map(|x| x.trim().to_string())
