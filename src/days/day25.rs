@@ -20,7 +20,6 @@ impl PartialEq for Wire {
 
 #[derive(Debug)]
 struct Component {
-    name: String,
     visited: bool,
     wires: HashMap<(String, String), Rc<RefCell<Wire>>>,
     graph_nr: u64,
@@ -50,7 +49,6 @@ impl Day25 {
                 let targets: Vec<String> =
                     caps[2].split(' ').map(|s| s.trim().to_string()).collect();
                 let cmp = Component {
-                    name: cmp_name.clone(),
                     visited: false,
                     wires: HashMap::new(),
                     graph_nr: 0,
@@ -65,7 +63,6 @@ impl Day25 {
                         self.components.insert(
                             target.to_string(),
                             Rc::new(RefCell::new(Component {
-                                name: target.to_string(),
                                 visited: false,
                                 wires: HashMap::new(),
                                 graph_nr: 0,
@@ -224,7 +221,11 @@ impl Day for Day25 {
         let mut solution: u64 = 0;
         self.print_wires();
 
-        // Visually identified wires from real set:
+        /** Visual solution: */
+        // Visually identified wires to cut from real set:
+        // jff-zns
+        // fts-nvb
+        // kzx-qmr
         self.reset();
         self.wires
             .get(&("jff".to_string(), "zns".to_string()))
@@ -244,7 +245,8 @@ impl Day for Day25 {
             .as_ref()
             .borrow_mut()
             .active = false;
-
+            
+        
         // Demo set:
         // Test: disconnect 3 fixed wires from the example:
         // self.wires
@@ -272,8 +274,9 @@ impl Day for Day25 {
 
         println!("Nr of graphs: {0}", nr_of_graphs);
         println!("Graph sizes: {:?}", graph_counts);
+        /**/
 
-        /* 
+        /*
         // Disconnect 3 wires, reset, walk, and count:
         // If we have only 2 graphs, we found our solution:
         // This solution takes too long!
@@ -302,7 +305,7 @@ impl Day for Day25 {
     }
 
     fn solve2(&mut self) -> String {
-        let mut solution: u64 = 0;
+        let solution: u64 = 0;
         String::from(format!("{0}", solution))
     }
 }
